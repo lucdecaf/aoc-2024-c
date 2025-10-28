@@ -1,3 +1,4 @@
+#include "lib/timing.c"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,6 +6,8 @@
 int cmp(const void *a, const void *b);
 
 int main(int argc, char *argv[]) {
+    start_timing();
+
     FILE *fptr;
 
     fptr = fopen("input-1.txt", "r");
@@ -38,6 +41,7 @@ int main(int argc, char *argv[]) {
 
     printf("%d\n", sum);
 
+    end_timing();
     return 0;
 }
 

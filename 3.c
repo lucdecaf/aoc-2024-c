@@ -1,8 +1,8 @@
+#include "lib/timing.c"
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 enum ParseState {
     RIGHT,
@@ -12,10 +12,7 @@ enum ParseState {
 };
 
 int main() {
-    // START TIMING
-    struct timespec tstart = {0, 0}, tend = {0, 0};
-    clock_gettime(CLOCK_MONOTONIC, &tstart);
-    // END TIMING
+    start_timing();
 
     FILE *fp;
     fp = fopen("input-3.txt", "r");
@@ -198,13 +195,6 @@ int main() {
 
     free(content);
 
-    // START TIMING
-    clock_gettime(CLOCK_MONOTONIC, &tend);
-    double elapsed_time = ((double)tend.tv_sec + 1.0e-9 * tend.tv_nsec) -
-                          ((double)tstart.tv_sec + 1.0e-9 * tstart.tv_nsec);
-    printf("Program execution took about %.9f seconds (nanosecond precision)\n",
-           elapsed_time);
-    // END TIMING
-
+    end_timing();
     return 0;
 }

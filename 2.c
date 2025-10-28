@@ -1,3 +1,4 @@
+#include "lib/timing.c"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +7,8 @@ bool is_safe(int nums[], int nums_count);
 bool is_safe_without_correction(int nums[], int nums_count);
 
 int main(int argc, char *argv[]) {
+    start_timing();
+
     FILE *fptr;
 
     fptr = fopen("input-2.txt", "r");
@@ -38,6 +41,7 @@ int main(int argc, char *argv[]) {
 
     printf("%d\n", safe_reports);
 
+    end_timing();
     return 0;
 }
 
