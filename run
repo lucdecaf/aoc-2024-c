@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+if [ "$#" == 1 ]; then
+    FILE=$1
+else
+    highest="0"
+    for file in *.c; do
+        number=${file%.c}
+        if [ "$number" -gt "$highest" ]; then
+            highest=$number
+        fi
+    done
+    FILE=$highest
+fi
+
+gcc -o "$FILE" "$FILE.c"
+./$FILE
+rm $FILE
+
