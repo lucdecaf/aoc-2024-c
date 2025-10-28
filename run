@@ -13,7 +13,7 @@ else
     FILE=$highest
 fi
 
-gcc -o "$FILE" "$FILE.c"
+gcc -o "$FILE" "$FILE.c" -lm
 ./$FILE
 rm $FILE
 

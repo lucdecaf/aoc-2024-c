@@ -2,14 +2,21 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 enum ParseState {
     RIGHT,
     LEFT,
     MUL,
+    DO_DONT,
 };
 
 int main() {
+    // START TIMING
+    struct timespec tstart = {0, 0}, tend = {0, 0};
+    clock_gettime(CLOCK_MONOTONIC, &tstart);
+    // END TIMING
+
     FILE *fp;
     fp = fopen("input-3.txt", "r");
     if (fp == NULL) {
@@ -43,47 +50,161 @@ int main() {
     // Close file now
     fclose(fp);
 
-    int i = 0;
-    while (i < filesize) {
+    int sum = 0;
+    bool enabled = true;
+    for (int i = 0; i < filesize; i++) {
         if (content[i] == ')') {
+
             // Start seeking backwards
-            char prev = '\0';
-            int j = i;
+            int j = i - 1;
 
             // flags
             int parse_state = RIGHT;
             int left_num = 0;
             int right_num = 0;
             int *current_num = &right_num;
+
             int idx = 0;
+            char prev_char = ')';
+            bool new_enabled;
 
             while (j >= 0) {
-                switch (content[j]) {
-                case '0' ... '9':
-                    *current_num += (content[i] - '0') * pow(10, idx++);
-                    break;
-                case ',':
-                    if (current_num == &right_num) {
-                        current_num = &left_num;
-                        idx = 0;
-                    } else {
+                char current = content[j];
+
+                switch (current) {
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    if (parse_state != LEFT && parse_state != RIGHT)
                         goto badpattern;
-                    }
+
+                    *current_num += (current - '0') * (int)pow(10, idx++);
                     break;
+
+                case ',':
+                    if (parse_state != RIGHT)
+                        goto badpattern;
+
+                    current_num = &left_num;
+                    idx = 0;
+                    parse_state = LEFT;
+                    break;
+
+                case '(':
+                    if (prev_char == ')') {
+                        parse_state = DO_DONT;
+                        break;
+                    }
+                    if (parse_state != LEFT)
+                        goto badpattern;
+
+                    parse_state = MUL;
+                    break;
+
+                case 'l':
+                    if (parse_state != MUL)
+                        goto badpattern;
+                    if (prev_char != '(')
+                        goto badpattern;
+                    break;
+                case 'u':
+                    if (parse_state != MUL)
+                        goto badpattern;
+                    if (prev_char != 'l')
+                        goto badpattern;
+                    break;
+                case 'm':
+                    if (parse_state != MUL)
+                        goto badpattern;
+                    if (prev_char != 'u')
+                        goto badpattern;
+
+                    // Parsed successfully
+                    goto goodpattern;
+                    break;
+
+                    // don't
+                case 't':
+                    if (parse_state != DO_DONT)
+                        goto badpattern;
+                    if (prev_char != '(')
+                        goto badpattern;
+                    break;
+                case '\'':
+                    if (parse_state != DO_DONT)
+                        goto badpattern;
+                    if (prev_char != 't')
+                        goto badpattern;
+                    break;
+                case 'n':
+                    if (parse_state != DO_DONT)
+                        goto badpattern;
+                    if (prev_char != '\'')
+                        goto badpattern;
+                    break;
+
+                    // either middle or first
+                case 'o':
+                    if (parse_state != DO_DONT)
+                        goto badpattern;
+                    if (prev_char == 'n') {
+                        new_enabled = false;
+                        break;
+                    }
+                    if (prev_char == '(') {
+                        new_enabled = true;
+                        break;
+                    }
+                    goto badpattern;
+                    break;
+
+                    // always last
+                case 'd':
+                    if (parse_state != DO_DONT)
+                        goto badpattern;
+                    if (prev_char != 'o')
+                        goto badpattern;
+                    enabled = new_enabled;
+                    break;
+
                 default:
                     goto badpattern;
                 }
-            }
 
-        goodpattern:
+                prev_char = current;
+                j--;
+            } // end of parse loop
+
+        goodpattern: {
+            if (!enabled)
+                continue;
+
+            sum += left_num * right_num;
             continue;
+        }
 
-            // Generic exit point for all failed parse attempts
-        badpattern:
-            NULL;
+        badpattern:;
         }
     }
 
+    printf("%d\n", sum);
+
     free(content);
+
+    // START TIMING
+    clock_gettime(CLOCK_MONOTONIC, &tend);
+    double elapsed_time = ((double)tend.tv_sec + 1.0e-9 * tend.tv_nsec) -
+                          ((double)tstart.tv_sec + 1.0e-9 * tstart.tv_nsec);
+    printf("Program execution took about %.9f seconds (nanosecond precision)\n",
+           elapsed_time);
+    // END TIMING
+
     return 0;
 }
